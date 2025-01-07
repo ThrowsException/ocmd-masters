@@ -1,0 +1,73 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+#container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+}
+
+#leaderboard {
+  flex-grow: 33%;
+  height: 500px;
+  width: 90%;
+  background: rgb(247,244,240);
+}
+
+#top {
+  flex-grow: 33%;
+  height: 100px;
+  width: 90%;
+  background: rgb(247,244,240);
+  border-radius: 100% 100% 0 0%;
+  border-bottom: outset 10px rgba(0,0,0,0.2);
+  text-transform: uppercase;
+  text-align: center;
+}
+
+#top > h1 {
+  margin-top: 0.2em;
+  font-size: 4em;
+  color: rgb(0,0,0);
+}
+
+#bottom {
+  flex-grow: 33%;
+  height: 60px;
+  width: 90%;
+  background: #065242;
+}
+
+table { 
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.player-score { 
+  font-weight: bold;
+  font-size: 1.0em;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.under { 
+  color: red;
+}
+.over { 
+  color: black;
+}
+
+#players > tr > td { 
+  border: inset 1px rgba(0,0,0,0.2);
+  padding: 2px;
+}
+
+#players > tr > td:not(:nth-child(1)) { 
+  text-align: right;
+}
