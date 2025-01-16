@@ -11,8 +11,8 @@
       </div>
 
       <div id="leaderboard">
-        <div id="games">
-          <ul id="games_list"></ul>
+        <div id="scorecard">
+          <ul id="holes_ref" style="list-style: none"></ul>
         </div>
       </div>
       <div id="bottom"></div>
@@ -29,6 +29,7 @@
         getDoc,
         getDocs,
         doc,
+        updateDoc,
       } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
       import {
         getAuth,
@@ -54,7 +55,8 @@
       const db = getFirestore(app);
 
       const auth = getAuth();
-      const gameRef = document.getElementById("games_list");
+      const gameRef = document.getElementById("holes_ref");
+      const holes = [];
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           // User is signed in, see docs for a list of available properties
@@ -62,30 +64,53 @@
 
           const urlParams = new URLSearchParams(window.location.search);
           const myParam = urlParams.get("player");
+          const game = urlParams.get("game");
           console.log(myParam);
           const docRef = doc(db, "players", `player::${myParam}`);
+
+          for (let i = 1; i <= 18; i++) {
+            holes.push({ hole: i, score: 0 });
+          }
+          gameRef.replaceChildren(
+            ...holes.map((hole) => {
+              const li = document.createElement("li");
+              const holes = document.createElement("span");
+              const score = document.createElement("span");
+              const i = document.createElement("input");
+
+              holes.textContent = hole.hole;
+              score.textContent = hole.score;
+              score.setAttribute("data-hole", hole.hole);
+              score.style.margin = "0 1rem";
+
+              i.type = "number";
+              i.min = 0;
+              i.setAttribute("data-hole", hole.hole);
+              li.appendChild(holes);
+              li.appendChild(score);
+              li.appendChild(i);
+              return li;
+            }),
+          );
+
           try {
-            const docSnap = await getDoc(docRef);
+            document.addEventListener("input", async (event) => {
+              if (event.target.tagName === "INPUT") {
+                const idx = Number(event.target.getAttribute("data-hole"));
+                const h = holes[idx - 1];
+                h.score = Number(event.target.value);
+                console.log(holes[idx - 1]);
+                document.querySelector(`span[data-hole="${idx}"]`).textContent =
+                  event.target.value;
 
-            gameRef.replaceChildren(
-              ...[
-                { name: "Baywood", link: "baywood" },
-                { name: "River Run", link: "river_run" },
-                { name: "Man O' War", link: "manowar" },
-              ].map((game) => {
-                const li = document.createElement("li");
-                const a = document.createElement("a");
+                const score = holes.reduce((acc, hole) => acc + hole.score, 0);
 
-                a.href = `scorecard.html?player=${docSnap.data().id}&game=${game.link}`;
-                a.style.textTransform = "capitalize";
-                a.textContent = game.name;
-                li.appendChild(a);
-                return li;
-              }),
-            );
-
-            // console.log(g.docs.map((doc) => doc.data()));
-            // console.log(docSnap.data());
+                const update = {};
+                update[`${game}.holes`] = holes;
+                update[`${game}.score`] = score;
+                await updateDoc(docRef, update);
+              }
+            });
           } catch (e) {
             console.error("Error getting document:", e);
           }

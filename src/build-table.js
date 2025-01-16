@@ -6,7 +6,7 @@ export const buildTable = (collection) => {
     const name = document.createElement("td");
 
     const name_a = document.createElement("a");
-    name_a.href = `player.html?player=${data.uid}`;
+    name_a.href = `player.html?player=${data.id}`;
     name_a.textContent = data.name;
     name.appendChild(name_a);
 
