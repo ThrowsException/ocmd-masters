@@ -68,9 +68,23 @@
           console.log(myParam);
           const docRef = doc(db, "players", `player::${myParam}`);
 
-          for (let i = 1; i <= 18; i++) {
-            holes.push({ hole: i, score: 0 });
+          const p = await getDoc(docRef);
+          const p_data = p.data();
+
+          let holes = [];
+          if (p_data?.[game]?.holes) {
+            holes = p_data[game].holes;
+          } else {
+            for (let i = 1; i <= 18; i++) {
+              holes.push({ hole: i, score: 0 });
+            }
+
+            const update = {};
+            update[`${game}.holes`] = holes;
+            await updateDoc(docRef, update);
           }
+
+          console.log(holes);
           gameRef.replaceChildren(
             ...holes.map((hole) => {
               const li = document.createElement("li");
@@ -85,6 +99,7 @@
 
               i.type = "number";
               i.min = 0;
+              i.value = hole.score;
               i.setAttribute("data-hole", hole.hole);
               li.appendChild(holes);
               li.appendChild(score);
