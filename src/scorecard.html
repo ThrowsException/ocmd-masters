@@ -12,11 +12,26 @@
 
       <div id="leaderboard">
         <div id="scorecard">
-          <ul id="holes_ref" style="list-style: none"></ul>
+          <!-- <ul id="holes_ref" style="list-style: none"></ul> -->
+          <div id="holes_ref"></div>
         </div>
       </div>
       <div id="bottom"></div>
     </div>
+    <style>
+      /* Chrome, Safari, Edge, Opera */
+      input::-webkit-outer-spin-button,
+      input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      /* Firefox */
+      input[type="number"] {
+        -moz-appearance: textfield;
+      }
+    </style>
+    <script></script>
     <script type="module">
       // TODO: Add SDKs for Firebase products that you want to use
       // https://firebase.google.com/docs/web/setup#available-libraries
@@ -39,6 +54,7 @@
       const auth = getAuth();
       const gameRef = document.getElementById("holes_ref");
       const holes = [];
+
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           // User is signed in, see docs for a list of available properties
@@ -68,34 +84,50 @@
 
           console.log(holes);
           gameRef.replaceChildren(
-            ...holes.map((hole) => {
-              const li = document.createElement("li");
-              const holes = document.createElement("span");
-              const score = document.createElement("span");
-              const i = document.createElement("input");
+            ...holes.map((hole, idx) => {
+              const h = document.createElement("div");
 
-              holes.textContent = hole.hole;
-              score.textContent = hole.score;
-              score.setAttribute("data-hole", hole.hole);
-              score.style.margin = "0 1rem";
+              // li.style.display = idx === 0 ? "inherit" : "none";
+              h.innerHTML = `<span>${hole.hole}</span> <span data-hole="${hole.hole}">${hole.score}</span> <input type="number" min="0" value="${hole.score}" data-hole="${hole.hole}" /><button id="down-${hole.hole}" data-hole="${hole.hole}">Down</button><button id="up-${hole.hole}" data-hole="${hole.hole}">Up</button>`;
 
-              i.type = "number";
-              i.min = 0;
-              i.value = hole.score;
-              i.setAttribute("data-hole", hole.hole);
-              li.appendChild(holes);
-              li.appendChild(score);
-              li.appendChild(i);
-              return li;
+              return h;
             }),
           );
+
+          const changeScore = async (event, inc) => {
+            console.log(event.target.getAttribute("data-hole"));
+            const idx = Number(event.target.getAttribute("data-hole"));
+            const h = holes[idx - 1];
+            h.score = Math.max(0, Number(h.score) + inc);
+            console.log(holes[idx - 1]);
+            document.querySelector(`span[data-hole="${idx}`).textContent =
+              h.score;
+            document.querySelector(`input[data-hole="${idx}`).value = h.score;
+            const score = holes.reduce((acc, hole) => acc + hole.score, 0);
+            const update = {};
+            update[`${game}.holes`] = holes;
+            update[`${game}.score`] = score;
+            await updateDoc(docRef, update);
+          };
+
+          document.querySelectorAll("button[id^=down]").forEach((button) => {
+            button.addEventListener("click", async (e) => {
+              changeScore(e, -1);
+            });
+          });
+
+          document.querySelectorAll("button[id^=up").forEach((button) => {
+            button.addEventListener("click", async (e) => {
+              changeScore(e, 1);
+            });
+          });
 
           try {
             document.addEventListener("input", async (event) => {
               if (event.target.tagName === "INPUT") {
                 const idx = Number(event.target.getAttribute("data-hole"));
                 const h = holes[idx - 1];
-                h.score = Number(event.target.value);
+                h.score = Math.max(0, Number(event.target.value));
                 console.log(holes[idx - 1]);
                 document.querySelector(`span[data-hole="${idx}"]`).textContent =
                   event.target.value;
